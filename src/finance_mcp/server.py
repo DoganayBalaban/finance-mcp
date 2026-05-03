@@ -33,6 +33,17 @@ def add_expense(kategori:str, aciklama:str, tutar:float)->str:
     worksheet.append_row([tarih, kategori, aciklama, tutar])
     return f"Harcama başarıyla kaydedildi: {tarih} - {kategori} - {aciklama} - {tutar} TL."
 
+@mcp.tool()
+def can_i_afford_this(urun_adi:str, fiyat:float)->str:
+    """Belirtilen ürünün fiyatını kontrol eder ve bütçe yeterli mi diye kontrol eder."""
+    summary = get_balance_summary()
+    kalan_limit = float(summary.split("Harcanabilir Kalan: ")[1].split(" TL.")[0])
+    if fiyat <= kalan_limit:
+        yeni_limit = kalan_limit - fiyat
+        return f"Evet, '{urun_adi}' alabilirsiniz. Yeni kalan limit: {yeni_limit} TL."
+    else:
+        fark = fiyat - kalan_limit
+        return f"Üzgünüz, '{urun_adi}' alamazsınız. Bütçenizde yeterli para yok. {fark} TL eksik."
 
 if __name__ == "__main__":
     mcp.run()
