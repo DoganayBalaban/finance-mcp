@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Build and packaging
+build/
+dist/
+*.egg-info/
+
+# IDE and OS
+.DS_Store
+.idea/
+.vscode/
+
+# Secrets and local config
+.env
+.env.*
+credentials.json
