@@ -1,3 +1,4 @@
+import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from mcp.server.fastmcp import FastMCP
@@ -23,6 +24,15 @@ def get_balance_summary()->str:
     kalan = gelir - gider - hedef
 
     return f"Gelir: {gelir} TL, Sabit Giderler: {gider} TL, Hedeflenen Tasarruf: {hedef} TL. Harcanabilir Kalan: {kalan} TL."
+
+@mcp.tool()
+def add_expense(kategori:str, aciklama:str, tutar:float)->str:
+    """Yeni bir harcama kaydeder."""
+    worksheet = sheet.worksheet("Harcamalar")
+    tarih = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    worksheet.append_row([tarih, kategori, aciklama, tutar])
+    return f"Harcama başarıyla kaydedildi: {tarih} - {kategori} - {aciklama} - {tutar} TL."
+
 
 if __name__ == "__main__":
     mcp.run()
