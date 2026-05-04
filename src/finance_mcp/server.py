@@ -1,5 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 
+from .tools import add_transaction
 from .tools import forecast
 from .tools import budget
 from .tools import spending
@@ -11,6 +12,7 @@ mcp.tool()(balance.get_monthly_summary)
 mcp.tool()(spending.get_spending_by_category)
 mcp.tool()(budget.check_budget_status)
 mcp.tool()(forecast.get_saving_forecast)
+mcp.tool()(add_transaction.add_transaction)
 
 if __name__ == "__main__":
     mcp.run()

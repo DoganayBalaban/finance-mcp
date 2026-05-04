@@ -40,6 +40,16 @@ class SheetsClient:
         rows = ws.get_all_records()
         return [r for r in rows if r.get('year') == year and r.get('month') == month]
 
+    def append_transactions(self, row_data:list)->bool:
+        """Transactions sayfasına yeni bir satır (işlem) ekler."""
+        try:
+            ws = self.gc.open_by_key(self.sheet_id).worksheet("Transactions")
+            ws.append_row(row_data)
+            return True
+        except Exception as e:
+            print(f"Google sheets'e yazılırken bir hata oluştu: {e}")
+            return False
+
 
 if __name__ == "__main__":
     try:
