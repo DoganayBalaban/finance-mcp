@@ -34,6 +34,11 @@ class SheetsClient:
                 print(f"Satır işlenirken hata: {e}")
 
         return filtered_rows
+    
+    def get_budgets(self, year:int, month:int):
+        ws = self.gc.open_by_key(self.sheet_id).worksheet("Budgets")
+        rows = ws.get_all_records()
+        return [r for r in rows if r.get('year') == year and r.get('month') == month]
 
 
 if __name__ == "__main__":
