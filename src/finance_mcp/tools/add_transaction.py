@@ -3,7 +3,9 @@ from ..sheets.client import SheetsClient
 from ..models import Transaction
 
 async def add_transaction(date_str:str, description:str, category: str, amount: float, txn_type: str)-> dict:
-    """Sheets'e yeni gelir/gider satırı ekler."""
+    """Sheets'e yeni gelir/gider satırı ekler. 
+    ÖNEMLİ GÜVENLİK KURALI: Bu aracı çalıştırmadan önce MUTLAKA kullanıcıya eklenecek verinin özetini sun ve 'Onaylıyor musun?' diye sor. Kullanıcı açıkça onay vermeden bu aracı ASLA çağırma.
+    """
     try:
         txn = Transaction(
             date=date_str,
