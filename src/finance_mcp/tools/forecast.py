@@ -1,7 +1,7 @@
-from calendar import month
+import sys
 from datetime import date
 from ..sheets.client import SheetsClient
-from ..models import Transaction
+from ..models import Transaction, TransactionType
 
 async def get_saving_forecast(months_back:int=3, target_savings:float=None):
     """Son N ay verisiyle gelecek ay tasarruf tahmini üretir."""
@@ -16,23 +16,21 @@ async def get_saving_forecast(months_back:int=3, target_savings:float=None):
     valid_months = 0
 
     for i in range(months_back):
-        m = current_month - i - 1
-        y = current_year
-        if m <= 0:
-            m += 12
-            y -= 1
-        
+        total_months = current_year * 12 + current_month - i - 1
+        y, m = divmod(total_months - 1, 12)
+        m += 1
+
         try:
-            rows = client.get_transactions(y,m)
+            rows = client.get_transactions(y, m)
             if not rows:
                 continue
 
             txns = [Transaction(**r) for r in rows]
-            total_income += sum(t.amount for t in txns if t.type == "income")
-            total_expense += sum(abs(t.amount) for t in txns if t.type == "expense")
+            total_income += sum(t.amount for t in txns if t.type == TransactionType.INCOME)
+            total_expense += sum(abs(t.amount) for t in txns if t.type == TransactionType.EXPENSE)
             valid_months += 1
         except Exception as e:
-            print(f"{y}-{m} dönemi çekilirken hata: {e}")
+            print(f"{y}-{m} dönemi çekilirken hata: {e}", file=sys.stderr)
             continue
     
     if valid_months == 0:

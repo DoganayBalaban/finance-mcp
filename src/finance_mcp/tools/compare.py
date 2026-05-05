@@ -2,9 +2,11 @@ from .balance import get_monthly_summary
 
 async def compare_months(year1:int, month1:int, year2:int, month2:int)->dict:
     """İki farklı ayın finansal durumunu karşılaştırır (Örn: Mart vs Nisan)."""
-
-    m1_data = await get_monthly_summary(year1,month1)
-    m2_data = await get_monthly_summary(year2,month2)
+    try:
+        m1_data = await get_monthly_summary(year1, month1)
+        m2_data = await get_monthly_summary(year2, month2)
+    except Exception as e:
+        return {"error": f"Ay verileri alınırken hata oluştu: {e}"}
 
     income_diff = m2_data["total_income"] - m1_data["total_income"]
     expense_diff = m2_data["total_expense"] - m1_data["total_expense"]

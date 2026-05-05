@@ -31,12 +31,14 @@ async def generate_monthly_report(year: int, month: int) -> dict:
     # reports klasörünü ana dizinde oluştur ve dosyayı kaydet
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     reports_dir = os.path.join(project_root, "reports")
-    os.makedirs(reports_dir, exist_ok=True)
-    
     file_path = os.path.join(reports_dir, f"finance_report_{year}_{month:02d}.md")
-    
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(report_content)
+
+    try:
+        os.makedirs(reports_dir, exist_ok=True)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(report_content)
+    except OSError as e:
+        return {"success": False, "message": f"Rapor dosyası oluşturulamadı: {e}"}
 
     return {
         "success": True,
