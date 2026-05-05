@@ -1,5 +1,7 @@
 from mcp.server.fastmcp import FastMCP
 from datetime import date
+
+from finance_mcp.tools import goal, report
 from .tools import compare
 from .tools import add_transaction
 from .tools import forecast
@@ -32,6 +34,8 @@ mcp.tool()(budget.check_budget_status)
 mcp.tool()(forecast.get_saving_forecast)
 mcp.tool()(add_transaction.add_transaction)
 mcp.tool()(compare.compare_months)
+mcp.tool()(report.generate_monthly_report)
+mcp.tool()(goal.set_savings_goal)
 
 if __name__ == "__main__":
     mcp.run()
