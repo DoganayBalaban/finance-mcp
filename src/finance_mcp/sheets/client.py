@@ -49,6 +49,16 @@ class SheetsClient:
         except Exception as e:
             print(f"Google sheets'e yazılırken bir hata oluştu: {e}")
             return False
+    
+    def set_savings_goal(self,year:int, month:int, amount:float)->bool:
+        """Goals sayfasına yeni bir tasarruf hedefi ekler."""
+        try:
+            ws = self.gc.open_by_key(self.sheet_id).worksheet("Goals")
+            ws.append_row([year,month,amount])
+            return True
+        except Exception as e:
+            print(f"Hedef Google Sheets'e yazılırken hata: {e}")
+            return False
 
 
 if __name__ == "__main__":
