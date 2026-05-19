@@ -1,5 +1,5 @@
 from datetime import date
-from ..sheets.client import SheetsClient
+from ..sheets.client import get_client
 from ..models import Transaction
 
 async def add_transaction(date_str:str, description:str, category: str, amount: float, txn_type: str, confirmed: bool = False)-> dict:
@@ -23,7 +23,7 @@ async def add_transaction(date_str:str, description:str, category: str, amount: 
     except Exception as e:
         return {"success": False, "message": f"Doğrulama hatası (Tarih formatı YYYY-MM-DD olmalı vb.): {e}"}
 
-    client = SheetsClient()
+    client = get_client()
 
     row_data = [
         txn.date.isoformat(),  # YYYY-MM-DD formatında string
@@ -35,6 +35,6 @@ async def add_transaction(date_str:str, description:str, category: str, amount: 
 
     success = client.append_transactions(row_data)
     if success:
-        return {"success": True, "message": f"'{description}' açıklamalı işlem başarıyla eklendi."}
+        return {"success": True, "message": f"'{txn.description}' açıklamalı işlem başarıyla eklendi."}
     else:
         return {"success": False, "message": "İşlem Google Sheets'e kaydedilemedi."}

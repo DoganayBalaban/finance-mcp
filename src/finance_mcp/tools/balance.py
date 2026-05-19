@@ -1,10 +1,10 @@
-from ..sheets.client import SheetsClient
+from ..sheets.client import get_client
 from ..models import Transaction, TransactionType
 
 
 async def get_monthly_summary(year: int, month: int) -> dict:
     """Belirtilen ay için gelir/gider özeti döndürür."""
-    client = SheetsClient()
+    client = get_client()
     rows = client.get_transactions(year, month)
 
     txns = [Transaction(**r) for r in rows]

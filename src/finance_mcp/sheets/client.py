@@ -43,6 +43,55 @@ class SheetsClient:
             print(f"Google sheets'e yazılırken bir hata oluştu: {e}", file=sys.stderr)
             return False
 
+    def find_transaction_row(self, date_str: str, description: str, amount: float) -> int | None:
+        """Eşleşen ilk işlemin satır numarasını döndürür (1-tabanlı, başlık dahil)."""
+        ws = self.gc.open_by_key(self.sheet_id).worksheet("Transactions")
+        rows = ws.get_all_values()
+        for i, row in enumerate(rows[1:], start=2):
+            try:
+                if (len(row) >= 5 and
+                        row[0] == date_str and
+                        row[1] == description and
+                        abs(float(row[3]) - amount) < 0.001):
+                    return i
+            except (ValueError, IndexError):
+                continue
+        return None
+
+    def delete_transaction_row(self, row_number: int) -> bool:
+        try:
+            ws = self.gc.open_by_key(self.sheet_id).worksheet("Transactions")
+            ws.delete_rows(row_number)
+            return True
+        except Exception as e:
+            print(f"Satır silinirken hata: {e}", file=sys.stderr)
+            return False
+
+    def update_transaction_row(self, row_number: int, row_data: list) -> bool:
+        try:
+            ws = self.gc.open_by_key(self.sheet_id).worksheet("Transactions")
+            ws.update(f"A{row_number}:E{row_number}", [row_data])
+            return True
+        except Exception as e:
+            print(f"Satır güncellenirken hata: {e}", file=sys.stderr)
+            return False
+
+    def upsert_budget(self, category: str, year: int, month: int, monthly_limit: float) -> bool:
+        try:
+            ws = self.gc.open_by_key(self.sheet_id).worksheet("Budgets")
+            rows = ws.get_all_records()
+            for i, r in enumerate(rows, start=2):
+                if (r.get('category') == category and
+                        r.get('year') == year and
+                        r.get('month') == month):
+                    ws.update(f"B{i}", [[monthly_limit]])
+                    return True
+            ws.append_row([category, monthly_limit, year, month])
+            return True
+        except Exception as e:
+            print(f"Bütçe kaydedilirken hata: {e}", file=sys.stderr)
+            return False
+
     def set_savings_goal(self, year:int, month:int, amount:float)->bool:
         """Goals sayfasına tasarruf hedefi yazar. Aynı ay/yıl için mevcut satırı günceller."""
         try:
@@ -57,6 +106,20 @@ class SheetsClient:
         except Exception as e:
             print(f"Hedef Google Sheets'e yazılırken hata: {e}", file=sys.stderr)
             return False
+
+
+_client: "SheetsClient | None" = None
+
+
+def get_client() -> "SheetsClient":
+    global _client
+    if _client is None:
+        try:
+            _client = SheetsClient()
+        except Exception:
+            _client = None
+            raise
+    return _client
 
 
 if __name__ == "__main__":

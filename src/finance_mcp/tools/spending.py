@@ -1,10 +1,10 @@
 from collections import defaultdict
-from ..sheets.client import SheetsClient
+from ..sheets.client import get_client
 from ..models import Transaction
 
 async def get_spending_by_category(year:int, month:int,top_n:int=5)->list[dict]:
     """Belirtilen ay için kategori bazlı harcama dağılımını döndürür."""
-    client = SheetsClient()
+    client = get_client()
     rows = client.get_transactions(year,month)
 
     expenses = [Transaction(**r) for r in rows if r.get('type') == "expense"]

@@ -4,6 +4,9 @@ from datetime import date
 from finance_mcp.tools import goal, report
 from .tools import compare
 from .tools import add_transaction
+from .tools import delete_transaction
+from .tools import edit_transaction
+from .tools import create_budget
 from .tools import forecast
 from .tools import budget
 from .tools import spending
@@ -33,6 +36,9 @@ mcp.tool()(spending.get_spending_by_category)
 mcp.tool()(budget.check_budget_status)
 mcp.tool()(forecast.get_saving_forecast)
 mcp.tool()(add_transaction.add_transaction)
+mcp.tool()(delete_transaction.delete_transaction)
+mcp.tool()(edit_transaction.edit_transaction)
+mcp.tool()(create_budget.create_budget)
 mcp.tool()(compare.compare_months)
 mcp.tool()(report.generate_monthly_report)
 mcp.tool()(goal.set_savings_goal)
