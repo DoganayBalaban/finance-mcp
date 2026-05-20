@@ -56,7 +56,7 @@ src/finance_mcp/
 
 **MCP resource:** `finance://summary/current` — returns a plain-text current-month summary (income/expense/balance/savings rate). Registered in `server.py` with `@mcp.resource()`.
 
-**Data flow:** `server.py` registers each tool function with `mcp.tool()`. Tool functions are async and instantiate `SheetsClient` on each call — there is no shared connection state. `SheetsClient` reads credentials from env vars at construction time.
+**Data flow:** `server.py` registers each tool function with `mcp.tool()`. Tool functions obtain a `SheetsClient` via `get_client()` (a lazy process-level singleton in `sheets/client.py`). The singleton is reset to `None` on construction errors and on gspread API errors, so the next call will re-initialize. gspread handles OAuth2 token refresh automatically via `AuthorizedSession`. `SheetsClient` reads credentials from env vars at construction time.
 
 **Google Sheets schema** (three worksheets):
 - `Transactions` — columns: `date` (YYYY-MM-DD), `description`, `category`, `amount`, `type` (income/expense)

@@ -17,8 +17,12 @@ class SheetsClient:
             raise ValueError("GOOGLE_SHEETS_ID environment variable is not set")
 
     def get_transactions(self, year:int, month:int):
-        ws = self.gc.open_by_key(self.sheet_id).worksheet("Transactions")
-        rows = ws.get_all_records()
+        try:
+            ws = self.gc.open_by_key(self.sheet_id).worksheet("Transactions")
+            rows = ws.get_all_records()
+        except Exception:
+            invalidate_client()
+            raise
 
         filtered_rows = []
         for r in rows:
@@ -29,8 +33,12 @@ class SheetsClient:
         return filtered_rows
 
     def get_budgets(self, year:int, month:int):
-        ws = self.gc.open_by_key(self.sheet_id).worksheet("Budgets")
-        rows = ws.get_all_records()
+        try:
+            ws = self.gc.open_by_key(self.sheet_id).worksheet("Budgets")
+            rows = ws.get_all_records()
+        except Exception:
+            invalidate_client()
+            raise
         return [r for r in rows if r.get('year') == year and r.get('month') == month]
 
     def append_transactions(self, row_data:list)->bool:
@@ -41,12 +49,17 @@ class SheetsClient:
             return True
         except Exception as e:
             print(f"Google sheets'e yazılırken bir hata oluştu: {e}", file=sys.stderr)
+            invalidate_client()
             return False
 
     def find_transaction_row(self, date_str: str, description: str, amount: float) -> int | None:
         """Eşleşen ilk işlemin satır numarasını döndürür (1-tabanlı, başlık dahil)."""
-        ws = self.gc.open_by_key(self.sheet_id).worksheet("Transactions")
-        rows = ws.get_all_values()
+        try:
+            ws = self.gc.open_by_key(self.sheet_id).worksheet("Transactions")
+            rows = ws.get_all_values()
+        except Exception:
+            invalidate_client()
+            raise
         for i, row in enumerate(rows[1:], start=2):
             try:
                 if (len(row) >= 5 and
@@ -65,6 +78,7 @@ class SheetsClient:
             return True
         except Exception as e:
             print(f"Satır silinirken hata: {e}", file=sys.stderr)
+            invalidate_client()
             return False
 
     def update_transaction_row(self, row_number: int, row_data: list) -> bool:
@@ -74,6 +88,7 @@ class SheetsClient:
             return True
         except Exception as e:
             print(f"Satır güncellenirken hata: {e}", file=sys.stderr)
+            invalidate_client()
             return False
 
     def upsert_budget(self, category: str, year: int, month: int, monthly_limit: float) -> bool:
@@ -90,6 +105,7 @@ class SheetsClient:
             return True
         except Exception as e:
             print(f"Bütçe kaydedilirken hata: {e}", file=sys.stderr)
+            invalidate_client()
             return False
 
     def set_savings_goal(self, year:int, month:int, amount:float)->bool:
@@ -105,6 +121,7 @@ class SheetsClient:
             return True
         except Exception as e:
             print(f"Hedef Google Sheets'e yazılırken hata: {e}", file=sys.stderr)
+            invalidate_client()
             return False
 
 
@@ -120,6 +137,12 @@ def get_client() -> "SheetsClient":
             _client = None
             raise
     return _client
+
+
+def invalidate_client() -> None:
+    """Singleton'ı sıfırlar. gspread API hatalarında çağrılır, bir sonraki get_client() yeniden bağlanır."""
+    global _client
+    _client = None
 
 
 if __name__ == "__main__":
