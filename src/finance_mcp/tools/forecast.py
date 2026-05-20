@@ -1,11 +1,11 @@
 import sys
 from datetime import date
-from ..sheets.client import SheetsClient
+from ..sheets.client import get_client
 from ..models import Transaction, TransactionType
 
 async def get_saving_forecast(months_back:int=3, target_savings:float=None):
     """Son N ay verisiyle gelecek ay tasarruf tahmini üretir."""
-    client = SheetsClient()
+    client = get_client()
 
     today = date.today()
     current_month = today.month

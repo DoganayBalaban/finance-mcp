@@ -1,3 +1,4 @@
+import re
 from pydantic import BaseModel, Field, field_validator
 from datetime import date
 from enum import Enum
@@ -16,10 +17,15 @@ class Transaction(BaseModel):
     @field_validator('description', 'category')
     @classmethod
     def strip_control_chars(cls, v: str) -> str:
-        return v.replace('\n', ' ').replace('\t', ' ').strip()
+        return re.sub(r'[\x00-\x1f\x7f]', ' ', v).strip()
 
 class Budget(BaseModel):
-    category:str
-    monthly_limit:float
-    year:int
-    month:int
+    category: str = Field(min_length=1, max_length=100)
+    monthly_limit: float
+    year: int
+    month: int
+
+    @field_validator('category')
+    @classmethod
+    def strip_control_chars(cls, v: str) -> str:
+        return re.sub(r'[\x00-\x1f\x7f]', ' ', v).strip()

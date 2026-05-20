@@ -22,7 +22,17 @@ Run the server directly:
 python -m src.finance_mcp.server
 ```
 
-There are no automated tests in this repo. Manually test by connecting Claude Desktop (see README for config) or by running `python src/finance_mcp/sheets/client.py` to verify Google Sheets connectivity.
+Interactive inspection via MCP Inspector (spins up a local UI):
+```bash
+mcp dev src/finance_mcp/server.py
+```
+
+Verify Google Sheets connectivity in isolation:
+```bash
+python src/finance_mcp/sheets/client.py
+```
+
+There are no automated tests. Manually test by connecting Claude Desktop (see README for config).
 
 ## Architecture
 
@@ -44,7 +54,9 @@ src/finance_mcp/
     └── report.py      # generate_monthly_report (writes local .md file)
 ```
 
-**Data flow:** `server.py` registers each tool function with `mcp.tool()`. Tool functions are async and instantiate `SheetsClient` on each call — there is no shared connection state. `SheetsClient` reads credentials from env vars at construction time.
+**MCP resource:** `finance://summary/current` — returns a plain-text current-month summary (income/expense/balance/savings rate). Registered in `server.py` with `@mcp.resource()`.
+
+**Data flow:** `server.py` registers each tool function with `mcp.tool()`. Tool functions obtain a `SheetsClient` via `get_client()` (a lazy process-level singleton in `sheets/client.py`). The singleton is reset to `None` on construction errors and on gspread API errors, so the next call will re-initialize. gspread handles OAuth2 token refresh automatically via `AuthorizedSession`. `SheetsClient` reads credentials from env vars at construction time.
 
 **Google Sheets schema** (three worksheets):
 - `Transactions` — columns: `date` (YYYY-MM-DD), `description`, `category`, `amount`, `type` (income/expense)
@@ -55,10 +67,16 @@ src/finance_mcp/
 
 1. Create `src/finance_mcp/tools/<name>.py` with an `async def` function.
 2. Import and register it in `server.py` with `mcp.tool()(<module>.<function>)`.
-3. If the tool writes data, embed the user-confirmation requirement in the docstring (see `add_transaction.py` for the pattern — the LLM reads the docstring as a safety rule).
+3. If the tool writes data, use the two-layer safety pattern from `add_transaction.py`:
+   - Add a `confirmed: bool = False` parameter; return an early rejection dict when `False`.
+   - Embed a Turkish-language instruction in the docstring telling the LLM to ask for confirmation before calling the tool.
+
+## Language Constraint
+
+All docstrings and user-facing messages must be written in **Turkish**. The LLM reads tool docstrings as runtime instructions, so language consistency matters.
 
 ## Key Constraints
 
 - **Write operations require explicit user confirmation.** The `add_transaction` tool docstring instructs the LLM to ask for confirmation before calling the tool. Do not remove or weaken this constraint.
 - Credentials (`credentials/`, `.env`) are gitignored and must never be committed.
-- The MCP server is run by Claude Desktop as a subprocess; stdout must stay clean (use `print()` only for errors/debug, not regular output).
+- The MCP server is run by Claude Desktop as a subprocess; **stdout must stay clean**. All debug/error output must go to `sys.stderr` (e.g. `print(..., file=sys.stderr)`), never plain `print()`.

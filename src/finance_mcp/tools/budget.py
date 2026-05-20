@@ -1,10 +1,10 @@
 from collections import defaultdict
-from ..sheets.client import SheetsClient
+from ..sheets.client import get_client
 from ..models import Transaction, Budget
 
 async def check_budget_status(year:int, month:int) -> list[dict]:
     """Bütçe limitlerini gerçek harcamalarla karşılaştırır."""
-    client = SheetsClient()
+    client = get_client()
 
     try:
         budget_rows = client.get_budgets(year,month)
